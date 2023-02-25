@@ -2,6 +2,7 @@
 import battleship.*;
 
 import java.awt.Point;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,7 +30,7 @@ public class BottyBot implements BattleShipBot {
     /** list for all destroyed battleships **/
     private ArrayList<Integer> stored;
     /** count for the number of shot to sink a battleship **/
-    private int count = 0;
+    private int count = 1;
     /** Int representing a MISSed shot**/
     private final int MISS = 1;
     /** Int representing a HIT **/
@@ -40,6 +41,15 @@ public class BottyBot implements BattleShipBot {
     private static final String ANSI_GREEN = "\u001B[32m";
     /** color for normal text(debugging)**/
     private static final String ANSI_RESET = "\u001B[0m";
+    /** color for green yellow(debugging) **/
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    /** color for green blue(debugging) **/
+    public static final String ANSI_BLUE = "\u001B[34m";
+
+    public static HashSet<Ship> shipsDestroyedSet = new HashSet<Ship>();
+
+    public static int destroyer = 0;
+
 
     /**
      * Constructor keeps a copy of the BattleShip instance
@@ -56,8 +66,11 @@ public class BottyBot implements BattleShipBot {
         // This is needed if you are trying to improve the performance of your code
 
         random = new Random(0xAAAAAAAA);   // Needed for random shooter - not required for more systematic approaches
-        stored = new ArrayList<Integer>(); // resets list of destroyed ships
+        shipsDestroyedSet = new HashSet<Ship>(); // set hashset
         parity = 2; // resets the parity
+        destroyer = 0;
+        count=1;
+
     }
 
 
@@ -116,6 +129,10 @@ public class BottyBot implements BattleShipBot {
 //            for (int j = 0; j < battleShip.BOARD_SIZE; j++) {
 //                if (map[i][j] == 2){
 //                    System.out.print(ANSI_GREEN +map[i][j] + " " +ANSI_RESET);
+//                } else if (map[i][j] == 1){
+//                    System.out.print(ANSI_BLUE +map[i][j] + " " +ANSI_RESET);
+//                } else if (map[i][j] == 3) {
+//                    System.out.print(ANSI_YELLOW + map[i][j] + " " + ANSI_RESET);
 //                } else{
 //                    System.out.print(map[i][j] + " ");
 //                }
@@ -124,7 +141,7 @@ public class BottyBot implements BattleShipBot {
 //            System.out.println();
 //
 //        }
-//        System.out.println("NEXT");
+//        System.out.println("NEXT SHOT");
 
 
         //**************Print Board For de bugging After Each shot*****************
@@ -136,35 +153,38 @@ public class BottyBot implements BattleShipBot {
             map[shots[0]][shots[1]] = HIT;
             searchMode(shots[0],shots[1]);// Enter into search mode once a shot is hit
 
-
+//    ************************************* Parity Call ***********************
             setParity(); // increments parity
 
-            count = 0;
+            count = 1;
         }
         else{// shot miss enter 1 into map
             map[shots[0]][shots[1]] = MISS;
         }
     }
 
-// **********************************************Parity Increment*****************************************************************
+
+    // **********************************************Parity Increment*****************************************************************
 
     /**
      * stores ships sunk in ArrayList and increments parity as needed
      */
     private void setParity(){
-        stored.add(count);
-//        System.out.println(stored);
-        Collections.sort(stored);
-        if (stored.get(0)== parity && stored.get(0) != 4){
-//                System.out.println("SHIP with: " + count + "HIT sank");
+
+        shipsDestroyedSet.insert(new Ship(count));
+//        System.out.println("ship destroyed = " + count);
+        if (shipsDestroyedSet.contains(new Ship(parity)) &&count <4){
+            shipsDestroyedSet.remove(new Ship(parity));
             parity++;
-            stored.remove(0);
-//                System.out.println("Parity now " + parity);
+        }else if (count ==4){
+            destroyer ++;
+            shipsDestroyedSet.remove(new Ship(parity));
+            if (destroyer>1){
+                parity++;
+            }
         }
-        if (parity >3 ){
-            parity = 4;
-        }
-        count=0;
+//        System.out.println("parity now "+parity);
+
     }
 
 
@@ -183,6 +203,7 @@ public class BottyBot implements BattleShipBot {
                 if(x>1 && x<14){
                     map[(x-1)][y] = HIT;
                 }
+                elimRowSurrounding(x,y);
                 return;
             }
 
@@ -191,6 +212,7 @@ public class BottyBot implements BattleShipBot {
                 if(x>1 && x<13){
                     map[(x+1)][y] = HIT;
                 }
+                elimRowSurrounding(x,y);
                 return;
             }
             optionColPos(x,y);// shoot UP(col+)
@@ -198,6 +220,7 @@ public class BottyBot implements BattleShipBot {
                 if(y>1 && y<14){
                     map[x][(y-1)] = HIT;
                 }
+                elimColSurrounding(x,y);
                 return;
             }
             optionColNeg(x,y);// shoot DOWN(col-)
@@ -205,6 +228,7 @@ public class BottyBot implements BattleShipBot {
                 if(y>1 && y<14){
                     map[x][(y+1)] = HIT;
                 }
+                elimColSurrounding(x,y);
                 return;
             }
 

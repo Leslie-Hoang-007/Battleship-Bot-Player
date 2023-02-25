@@ -20,11 +20,19 @@ public class A6 {
         BattleShip2 battleShip = new BattleShip2(NUMBEROFGAMES, new BottyBot());
         int [] gameResults = battleShip.run();
 
+//        HashSet<Ship> shipsDestroyedSet = new HashSet<Ship>();
+//        shipsDestroyedSet.insert(new Ship(2));
+
         // You may add some analysis code to look at all the game scores that are returned in gameResults
         // This can be useful for debugging purposes.
 
         battleShip.reportResults();
         battleShip.numberOfShipsSunk();
+
+//        System.out.println(shipsDestroyedSet.contains(new Ship(2)));
+//        shipsDestroyedSet.remove(new Ship(2));
+//        System.out.println("hello");
+//        System.out.println(shipsDestroyedSet.contains(new Ship(2)));
 
     }
 
